@@ -63,7 +63,7 @@ func (s *Service) AvatarHandler() gin.HandlerFunc {
 	}
 }
 
-func Basic(secret, url, appName string) Service {
+func Basic(url, appName, secret string) Service {
 	if err := os.Mkdir("avatars", fs.ModeDir); err != nil {
 		if os.IsPermission(err) {
 			panic("Could not create directory to store avatar pictures")

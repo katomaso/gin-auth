@@ -9,11 +9,19 @@ import (
 	"github.com/katomaso/gin-auth"
 )
 
-auth := gin_auth.New(config)
+func main() {
+	router := gin.Default()
+	auth := gin_auth.Basic("localhost:8080", "my-app-name", "secret")
 
-router.Use(auth.Required)
-// or 
-router.Use(auth.Optional)
+	// this needs to be publicaly accessible
+	router.Use(auth.Optional())
+	router.GET("/auth", auth.AuthHandler())
+	router.GET("/avatar", auth.AvatarHandler())
+
+	// after using this middleware, all router will be for authorized users only
+	router.Use(auth.Required())
+	router.GET("/private", onlyForAuthenticatedUsers)
+}
 ```
 
 If the user is logged in, you will find c.Get("user") populated with value of `go-pkgz/auth/token.User`
