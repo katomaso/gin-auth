@@ -10,15 +10,18 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-pkgz/auth"
 	"github.com/go-pkgz/auth/avatar"
+	"github.com/go-pkgz/auth/middleware"
 	"github.com/go-pkgz/auth/token"
 	"github.com/katomaso/gin-auth/internal"
 )
 
 type Service struct {
 	*auth.Service
+	m middleware.Authenticator
 }
 
 func (s *Service) Required() gin.HandlerFunc {
+	s.m = s.Middleware()
 	return func(c *gin.Context) {
 		success := false
 		_next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -28,8 +31,7 @@ func (s *Service) Required() gin.HandlerFunc {
 			}
 			c.Next()
 		})
-		m := s.Middleware()
-		m.Auth(_next).ServeHTTP(c.Writer, c.Request)
+		s.m.Auth(_next).ServeHTTP(c.Writer, c.Request)
 		if !success {
 			c.Abort()
 		}
@@ -37,6 +39,7 @@ func (s *Service) Required() gin.HandlerFunc {
 }
 
 func (s *Service) Optional() gin.HandlerFunc {
+	s.m = s.Middleware()
 	return func(c *gin.Context) {
 		_next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if u, err := token.GetUserInfo(c.Request); err == nil {
@@ -44,8 +47,7 @@ func (s *Service) Optional() gin.HandlerFunc {
 			}
 			c.Next()
 		})
-		m := s.Middleware()
-		m.Trace(_next).ServeHTTP(c.Writer, c.Request)
+		s.m.Trace(_next).ServeHTTP(c.Writer, c.Request)
 	}
 }
 
@@ -79,9 +81,9 @@ func Basic(url, appName, secret string) Service {
 		Issuer:         appName,
 		URL:            url,
 		AvatarStore:    avatar.NewLocalFS("./avatars"),
-		Logger:         internal.AuthLogger{log.New(os.Stderr, "[GIN-auth] ", log.Ldate|log.Ltime)},
+		Logger:         internal.AuthLogger{Logger: log.New(os.Stderr, "[GIN-auth] ", log.Ldate|log.Ltime)},
 	}
 	return Service{
-		auth.NewService(opts),
+		Service: auth.NewService(opts),
 	}
 }
