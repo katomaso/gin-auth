@@ -24,4 +24,4 @@ func main() {
 }
 ```
 
-If the user is logged in, you will find c.Get("user") populated with value of `go-pkgz/auth/token.User`
+If the user is logged in, you will find `c.Get("user")` populated with value of [`go-pkgz/auth/token.User`](https://github.com/go-pkgz/auth/blob/master/token/user.go#L25)
