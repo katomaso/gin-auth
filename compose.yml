@@ -1,0 +1,7 @@
+
+services:
+  mail:
+    image: mailhog/mailhog
+  redis:
+    image: redis/redis
+    command: ["redis-server", "--maxmemory=5mb"]
